@@ -11,12 +11,13 @@ Originally created by: R. Cameron Craddock<sup>1,2,†</sup>, see original repos
 ## MODIFICATIONS in this fork
 
 Planned modifications by Julie Tseng to prep task for MEG acquisition. Changes include:
-* Ensure compatibility with older PsychoPy version on that stim comp (v1.85.2)
-* Removal of LUMINA trigger and button press settings
-* Set up parallel port I/O for registering button presses and sending triggers to MEG acquisition system
-* Adding user triggering to replace LUMINA trigger between task randomization and actual task onset
-* Change resolution to 1920x1080 as per the stim comp screen in the Clinical MEG, including the fixation stim
-* Modifications to task structure as per Liz's plans
+- [x] Ensure compatibility with older PsychoPy version on that stim comp (v1.85.2)
+    * 2021-08-11: Had to fix issue with triple numbers not showing up for this version of PsychoPy, otherwise works
+- [ ] Removal of LUMINA trigger and button press settings
+- [ ] Set up parallel port I/O for registering button presses and sending triggers to MEG acquisition system
+- [ ] Adding user triggering to replace LUMINA trigger between task randomization and actual task onset
+- [ ] Change resolution to 1920x1080 as per the stim comp screen in the Clinical MEG, including the fixation stim
+- [ ] Modifications to task structure as per Liz's plans
 
 ## Task Description
 
