@@ -189,7 +189,7 @@ thisExp = data.ExperimentHandler(name=expName, version='',
 from psychopy import visual
 
 # Setup the Window
-win = visual.Window(size=(1024, 768),
+win = visual.Window(size=(1920, 1080),
                     fullscr=FULL_SCREEN,
                     screen=0,
                     allowGUI=False,
@@ -286,7 +286,7 @@ firstClock = core.Clock()
 first_text = visual.TextStim(win=win,
     ori=0, name='first_text',
     text='nonsense',    font='Arial',
-    pos=[0, 0], height=0.3, wrapWidth=None,
+    pos=[0, 0], units='pix', height=100,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
@@ -294,7 +294,7 @@ first_text = visual.TextStim(win=win,
 secondClock = core.Clock()
 second_text = visual.TextStim(win=win, ori=0, name='second_text',
     text='nonsense',    font='Arial',
-    pos=[0, 0], height=0.3, wrapWidth=None,
+    pos=[0, 0], units='pix', height=100, wrapWidth=None,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
@@ -302,6 +302,7 @@ second_text = visual.TextStim(win=win, ori=0, name='second_text',
 if expInfo['Configuration'] == 'Practice':
     response_text = visual.TextStim(win=win, ori=0, name='response_text',
         text='nonsense',    font='Arial',
+        alignHoriz='center', alignVert='top',
         pos=[0, 0.3], height=0.08, wrapWidth=None,
         color='white', colorSpace='rgb', opacity=1,
         depth=0.0)
