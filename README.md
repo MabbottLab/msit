@@ -2,11 +2,21 @@
 
 # Multi-Source Interference Task
 
-R. Cameron Craddock<sup>1,2,†</sup>
+Originally created by: R. Cameron Craddock<sup>1,2,†</sup>, see original repository [here](https://github.com/ccraddock/msit).
 
 <sup>1</sup>Nathan S. Kline Institute for Psychiatric Research, Orangeburg, NY, <sup>2</sup>Child Mind Institute, New York, NY
 
 <sup>†</sup>Contact [cameron.craddock@childmind.org](mailto:cameron.craddock@childmind.org) with any comments or questions.
+
+## MODIFICATIONS in this fork
+
+Planned modifications by Julie Tseng to prep task for MEG acquisition. Changes include:
+* Ensure compatibility with older PsychoPy version on that stim comp (v1.85.2)
+* Removal of LUMINA trigger and button press settings
+* Set up parallel port I/O for registering button presses and sending triggers to MEG acquisition system
+* Adding user triggering to replace LUMINA trigger between task randomization and actual task onset
+* Change resolution to 1920x1080 as per the stim comp screen in the Clinical MEG, including the fixation stim
+* Modifications to task structure as per Liz's plans
 
 ## Task Description
 
