@@ -12,8 +12,7 @@ Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers
 """
 
 from __future__ import division  # so that 1/3=0.333 instead of 1/3=0
-#from psychopy import visual, core, data, event, logging, gui
-from psychopy import core, data, event, logging, gui
+from psychopy import core, data, event, logging, gui, parallel
 from psychopy.constants import *  # things like STARTED, FINISHED
 from numpy.random import randint, shuffle
 import os  # handy system and path functions
@@ -25,32 +24,17 @@ import sys
 ############################
 
 # Turn fullscreen off for testing on monitor that == not 1024x768
-FULL_SCREEN=True
+FULL_SCREEN = False
 
 # CC here are some parameters that determine the behavior of the task
 STIM_ISI_SECONDS = 1.75
 NSTIM_BLOCK = 24
-NBLOCK_ITER = 4
+NBLOCK_ITER = 2
 FIXATION_BUFFER_SECONDS = 30.0
 
 # constants that define the blocks
 CONTROL_BLOCK = 333
 INTERFERENCE_BLOCK = 444
-
-# constants that we will use to control the behavior
-# of the LUMINA device
-
-# Flag determining whether we wish to use the Lumina (will cause task to fail 
-# if Lumina == not found).
-LUMINA = 0
-
-# Value returned by the Lumina when each of the buttons == pressed
-LUMINA_BUTTON_1 = 0
-LUMINA_BUTTON_2 = 1
-LUMINA_BUTTON_3 = 2
-
-# Value returned by the Lumina when a trigger (scanner) pulse == received
-LUMINA_TRIGGER = 4
 
 # Task instructions:
 task_instructions1 = """\
@@ -73,10 +57,19 @@ Answer as accurately and quickly as possible."""
 # The possible stimuli for the control condition
 all_control_stim=['100','020','003']
 
-
 # The possible stimuli for the interference condition
 all_int_stim=['221','212','331','313','112','211','332','233','131','311',\
     '232','322']
+
+################################
+# MEG I/O buttons and triggers #
+################################
+
+VPIXX       = 0 # set to 1 if in MEG
+BUTTON_BOX  = parallel.ParallelPort(address=0x3048)
+MEG_ACQ     = parallel.ParallelPort(address=0x4048)
+
+# NTS: check the mapping from nback task
 
 ###############################
 # Get remaining configuration #
@@ -122,39 +115,6 @@ if expInfo['Starting Block'] == 'Interference':
 else:
     all_first_text=all_control_stim
     all_second_stim=all_int_stim
-
-############################
-# Initialize Communication #
-# with the Lumina          #
-############################
-
-## initialize communication with the Lumina
-
-if LUMINA == 1:
-    import pyxid # to interact with the Lumina box
-
-    ## initialize communication with the Lumina
-    devices=pyxid.get_xid_devices()
-
-    if devices:
-        lumina_dev=devices[0]
-    else:
-        logging.log(level=logging.WARN, msg="LUMINA: Could not find device")
-        print "Could not find Lumina device"
-        sys.exit(1)
-
-    logging.log(level=logging.EXP, msg="LUMINA: Found response box")
-    print "Found response box:", lumina_dev
-
-    # restart timers associated with Lumina box
-    if lumina_dev.is_response_device():
-        lumina_dev.reset_base_timer()
-        lumina_dev.reset_rt_timer()
-    else:
-        logging.log(level=logging.WARN, msg="LUMINA: Device not a response box?")
-        print "Error: Lumina device == not a response device??"
-        sys.exit(1)
-
 
 ####################################
 # Set up output files and logging. #
@@ -208,6 +168,12 @@ else:
 #########################################
 # Initialize various display components #
 #########################################
+
+# NOTE: 
+# In trying to figure out compatibility with PsychoPy v1.85.2,
+# I realized that the text size is limited due to a pyglet bug that was
+# resolved in 1.85.3. Text below is set at max size for the 1920x1080 res,
+# and unless we can update the stim comp, then... 
 
 # Initialize components for Routine "instruct"
 instructClock = core.Clock()
@@ -270,7 +236,7 @@ instruct_text8 = visual.TextStim(win=win, ori=0, name='instruct_text8',
 # Initialize components for Routine "fixation"
 fixationClock = core.Clock()
 fix_stim = visual.Circle(win=win,
-    radius=[0.01875,0.025],
+    radius=[0.025,0.044],
     edges=32,
     ori=0,
     name='fix_stim',
@@ -286,7 +252,7 @@ firstClock = core.Clock()
 first_text = visual.TextStim(win=win,
     ori=0, name='first_text',
     text='nonsense',    font='Arial',
-    pos=[0, 0], units='pix', height=100,
+    pos=[0, 0], units='pix', height=100, # this is max text height for v1.85.2
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
@@ -294,7 +260,7 @@ first_text = visual.TextStim(win=win,
 secondClock = core.Clock()
 second_text = visual.TextStim(win=win, ori=0, name='second_text',
     text='nonsense',    font='Arial',
-    pos=[0, 0], units='pix', height=100, wrapWidth=None,
+    pos=[0, 0], units='pix', height=100, # this is max text height for v1.85.2
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
@@ -379,39 +345,17 @@ while continueRoutine:
         ready.frameNStart = frameN  # exact frame index
         ready.status = STARTED
 
-        # start keyboard / LUMINA checking by first 
-        # clearing all previous events
-        #
+        # start keyboard
         # clear the keyboard events
         event.clearEvents()
 
-        # clear Lumina events
-        if LUMINA == 1:
-            lumina_dev.clear_response_queue()
-
     if ready.status == STARTED:
-
+        # User trigger beginning of task past instructions on keyboard:
         # returns key presses, we are looking for all keys (keyList=None)
         theseKeys = event.getKeys(keyList=None)
         if len(theseKeys) > 0:  # at least one key was pressed
             # a response ends the routine
             continueRoutine = False
-
-        # check for a LUMINA_TRIGGER from the Lumina box
-        if LUMINA == 1:
-            lumina_dev.poll_for_response()
-            while lumina_dev.response_queue_size() > 0:
-                response = lumina_dev.get_next_response()
-                if response["pressed"]:
-                    # LUMINA debug statement
-                    logging.log(level=logging.EXP,\
-                        msg="Lumina received: %s, %d"%(response["key"],\
-                        response["key"]))
-                    print "Lumina received: %s, %d"%(response["key"],\
-                        response["key"])
-                    # if we receive a TRIGGER enable the task
-                    if response["key"] == LUMINA_TRIGGER:
-                        continueRoutine = False
 
     # check if all components have finished
     if not continueRoutine:  # a component has requested a forced-end of Routine
@@ -644,27 +588,39 @@ for thisExp_loop in exp_loop:
                 # keyboard checking == just starting
                 first_resp.clock.reset()  # now t=0
                 event.clearEvents()
-                # clear Lumina events
-                if LUMINA == 1:
-                    lumina_dev.clear_response_queue()
             elif first_resp.status == STARTED and t >= (0.0 + STIM_ISI_SECONDS):
                 first_resp.status = STOPPED
 
             if first_resp.status == STARTED:
-                # check for a LUMINA_TRIGGER from the Lumina box
-                if LUMINA == 1:
-                    theseKeys=[]
-                    lumina_dev.poll_for_response()
-                    while lumina_dev.response_queue_size() > 0:
-                        response = lumina_dev.get_next_response()
-                        if response["pressed"]:
-                            logging.log(level=logging.EXP,\
-                                msg="Lumina received: %s, %d"%(response["key"],\
-                                response["key"]))
-                            print "Lumina received: %s, %d"%(response["key"],\
-                                response["key"])
-                            if response["key"] in [0,1,2]:
-                                theseKeys.append(str(response["key"]+1))
+#                # check for a LUMINA_TRIGGER from the Lumina box
+#                if LUMINA == 1:
+#                    theseKeys=[]
+#                    lumina_dev.poll_for_response()
+#                    while lumina_dev.response_queue_size() > 0:
+#                        response = lumina_dev.get_next_response()
+#                        if response["pressed"]:
+#                            logging.log(level=logging.EXP,\
+#                                msg="Lumina received: %s, %d"%(response["key"],\
+#                                response["key"]))
+#                            print "Lumina received: %s, %d"%(response["key"],\
+#                                response["key"])
+#                            if response["key"] in [0,1,2]:
+#                                theseKeys.append(str(response["key"]+1))
+                if VPIXX == 1:
+                    # need some way to register all button presses and take the last one
+                    # if the participant decided to correct their option
+                   
+                    # theseKeys = []
+                    # BBOX_1 = BUTTON_BOX.readPin(???)
+                    # BBOX_2 = BUTTON_BOX.readPin(???)
+                    # BBOX_3 = BUTTON_BOX.readPin(???)
+                    # LOG RESPONSE? 
+                    if BBOX_1:
+                        theseKeys.append('1')
+                    elif BBOX_2:
+                        theseKeys.append('2')
+                    elif BBOX_3:
+                        theseKeys.append('3')
                 else:
                     theseKeys = event.getKeys(keyList=['h', 'j', 'k', 'left',\
                         'down','right'])
@@ -861,26 +817,14 @@ for thisExp_loop in exp_loop:
                 # keyboard checking == just starting
                 second_response.clock.reset()  # now t=0
                 event.clearEvents()
-                # clear Lumina events
-                if LUMINA == 1:
-                    lumina_dev.clear_response_queue()
             elif second_response.status == STARTED and t >= (0 + STIM_ISI_SECONDS):
                 second_response.status = STOPPED
 
             if second_response.status == STARTED:
-                # check for a LUMINA_TRIGGER from the Lumina box
-                if LUMINA == 1:
+                if VPIXX == 1:
                     theseKeys=[]
-                    lumina_dev.poll_for_response()
-                    while lumina_dev.response_queue_size() > 0:
-                        response = lumina_dev.get_next_response()
-                        if response["pressed"]:
-                            logging.log(level=logging.DATA,\
-                                msg="Lumina received: %s, %d"%(response["key"],\
-                                response["key"]))
-                            print "Lumina received: %s, %d"%(response["key"],response["key"])
-                            if response["key"] in [0,1,2]:
-                                theseKeys.append(str(response["key"]+1))
+################### PASTE HERE WHAT YOU FIGURE OUT FROM first_response SECTION RE: BUTTON PRESS ####################################################
+                    # LOG BUTTON BOX RESPONSE
                 else:
                     theseKeys = event.getKeys(keyList=['h', 'j', 'k','left',\
                         'down','right'])
