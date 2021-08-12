@@ -13,11 +13,10 @@ Originally created by: R. Cameron Craddock<sup>1,2,†</sup>, see original repos
 Planned modifications by Julie Tseng to prep task for MEG acquisition. Changes include:
 - [x] Ensure compatibility with older PsychoPy version on that stim comp (v1.85.2)
     * 2021-08-11: Had to fix issue with triple numbers not showing up for this version of PsychoPy, otherwise works
-- [ ] Liz to refine instruction text
-- [ ] Removal of LUMINA trigger and button press settings
+- [x] Change resolution to 1920x1080 as per the stim comp screen in the Clinical MEG, including the fixation stim
+- [x] Removal of LUMINA trigger and LUMINA button press settings
 - [ ] Set up parallel port I/O for registering button presses and sending triggers to MEG acquisition system
-- [ ] Adding user triggering to replace LUMINA trigger between task randomization and actual task onset
-- [ ] Change resolution to 1920x1080 as per the stim comp screen in the Clinical MEG, including the fixation stim
+- [ ] Liz to refine instruction text
 - [ ] Modifications to task structure as per Liz's plans
 
 ## Task Description
@@ -60,12 +59,11 @@ Keyboard mapping:
     2 or up arrow: 2
     3 or right arrow: 3
 
-Button box mapping:
+MEG VPixx button box mapping:
 
-    trigger (receive '4' from Lumina box): starts the task
-    button 1 (receive '0' from Lumina box): 1
-    button 2 (receive '1' from Lumina box): 2
-    button 3 (receive '2' from Lumina box): 3
+    button 1 (read pin X): 1 if pressed, 0 otherwise
+    button 2 (read pin Y): 1 if pressed, 0 otherwise
+    button 3 (read pin Z): 1 if pressed, 0 otherwise
 
 
 The task instructions are derived directly from Bush et al. 2006, and are copied here for completeness:
