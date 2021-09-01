@@ -85,15 +85,17 @@ def readButtons():
 
 # SENDING OUT info about trials
 MEG_ACQ         = parallel.ParallelPort(address=0x4048)
-int_block       = 1
-ctrl_block      = 2
-correct_resp    = 4
-incorrect_resp  = 8
+ctrl_block      = 1
+int_block       = 2
+button_out      = 4
 
 def sendTrigger(triggerVal):
     MEG_ACQ.setData(int(triggerVal))
     core.wait(0.01)
     parallel.setData(0)
+
+def printTrialType(triggerVal):
+    print(triggerVal)
 
 # NTS: check the mapping from nback task
 
@@ -136,9 +138,11 @@ if expInfo['Configuration'] == 'Practice':
 
 # if interference first, swap stim
 if expInfo['Starting Block'] == 'Interference':
+    trialTrig_out = [int_block, ctrl_block]
     all_first_text=all_int_stim
     all_second_stim=all_control_stim
 else:
+    trialTrig_out = [ctrl_block, int_block]
     all_first_text=all_control_stim
     all_second_stim=all_int_stim
 
@@ -584,6 +588,7 @@ for thisExp_loop in exp_loop:
                 thisComponent.status = NOT_STARTED
 
         #-------Start Routine "second"-------
+        trialTrig = False
         continueRoutine = True
         while continueRoutine and routineTimer.getTime() > 0:
             # get current time
@@ -597,6 +602,7 @@ for thisExp_loop in exp_loop:
                 first_text.tStart = t  # underestimates by a little under one frame
                 first_text.frameNStart = frameN  # exact frame index
                 first_text.setAutoDraw(True)
+                trialTrig = True
                 if expInfo['Configuration'] == 'Practice':
                     response_text.setText('')
                     response_text.setAutoDraw(True)
@@ -625,6 +631,7 @@ for thisExp_loop in exp_loop:
                     if VPIXX == 1: # task condition
                         response = readButtons() # read the button box
                         if response != 'none':   # if a button was pressed
+                            sendTrigger(buttonOut)
                             logging.log(level=logging.EXP,\
                                         msg="Button box received: %s"%(response))
                             theseKeys.append(response) # record the response
@@ -668,6 +675,14 @@ for thisExp_loop in exp_loop:
             # check for quit (the [Esc] key)
             if event.getKeys(["escape"]):
                 core.quit()
+
+            # send trigger based on trial type (int or ctrl)
+            if trialTrig == True:
+                if VPIXX == 1:
+                    win.callOnFlip(sendTrigger, trialTrig_out[0]) # first loop = first position
+                else:
+                    win.callOnFlip(printTrialType, trialTrig_out[0])
+                trialTrig = False
 
             # refresh the screen
             if continueRoutine:  # don't flip if this routine == over or we'll get a blank screen
@@ -792,6 +807,7 @@ for thisExp_loop in exp_loop:
                 thisComponent.status = NOT_STARTED
 
         #-------Start Routine "trial"-------
+        trialTrig = False
         continueRoutine = True
         while continueRoutine and routineTimer.getTime() > 0:
             # get current time
@@ -805,6 +821,7 @@ for thisExp_loop in exp_loop:
                 second_text.tStart = t  # underestimates by a little under one frame
                 second_text.frameNStart = frameN  # exact frame index
                 second_text.setAutoDraw(True)
+                trialTrig = True
                 if expInfo['Configuration'] == 'Practice':
                     response_text.setText('')
                     response_text.setAutoDraw(True)
@@ -836,6 +853,7 @@ for thisExp_loop in exp_loop:
                     if VPIXX == 1:
                         response = readButtons()
                         if response != 'none':
+                            sendTrigger(buttonOut) # send MEG ACQ trigger for button response
                             logging.log(level=logging.EXP,\
                                         msg="Button box received: %s"%(response))
                             theseKeys.append(response)
@@ -843,7 +861,7 @@ for thisExp_loop in exp_loop:
                         theseKeys = event.getKeys(keyList=['h', 'j', 'k','left',\
                             'down','right'])
 
-                    print(theseKeys)
+                    # print(theseKeys) # uncomment if you want to see what psychopy is reading
                     if len(theseKeys) > 0:  # at least one key was pressed
                         second_response.keys = theseKeys[0]  # just the last key pressed
                         second_response.rt = second_response.clock.getTime()
@@ -880,6 +898,14 @@ for thisExp_loop in exp_loop:
             # check for quit (the [Esc] key)
             if event.getKeys(["escape"]):
                 core.quit()
+
+            # send trigger based on trial
+            if trialTrig == True:
+                if VPIXX == 1:
+                    win.callOnFlip(sendTrigger, trialTrig_out[1]) # send MEG ACQ trigger for new trial onset
+                else:
+                    win.callOnFlip(printTrialType, trialTrig_out[1])
+                trialTrig = False
 
             # refresh the screen
             if continueRoutine:  # don't flip if this routine == over or we'll get a blank screen
