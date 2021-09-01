@@ -67,32 +67,35 @@ all_int_stim=['221','212','331','313','112','211','332','233','131','311',\
 
 VPIXX       = 0 # set to 1 if in MEG
 
-# BUTTON BOX Part 1: set up parallel ports# 
-BBOX_1_OR_2 = parallel.ParallelPort(0x3048)  # yellow and green buttons
-BBOX_3 = parallel.ParallelPort(0x3048+2)    # red button is mapped to pin 1, 
-                                             # so we need to read the control register
 
-# BUTTON BOX Part 2: return button press
-def readButtons():
-    if BBOX_1_OR_2.readPin(2):
-        return('1')
-    elif BBOX_1_OR_2.readPin(3):
-        return('2')
-    elif BBOX_3.readPin(2):
-        return('3')
-    else:
-        return('none')
+if VPIXX == 1:
+    # BUTTON BOX Part 1: set up parallel ports# 
+    BBOX_1_OR_2 = parallel.ParallelPort(0x3048)  # yellow and green buttons
+    BBOX_3 = parallel.ParallelPort(0x3048+2)    # red button is mapped to pin 1, 
+                                                 # so we need to read the control register
 
-# SENDING OUT info about trials
-MEG_ACQ         = parallel.ParallelPort(address=0x4048)
+    # BUTTON BOX Part 2: return button press
+    def readButtons():
+        if BBOX_1_OR_2.readPin(2):
+            return('1')
+        elif BBOX_1_OR_2.readPin(3):
+            return('2')
+        elif BBOX_3.readPin(2):
+            return('3')
+        else:
+            return('none')
+
+    # SENDING OUT info about trials
+    MEG_ACQ         = parallel.ParallelPort(address=0x4048)
+    button_out      = 4
+
+    def sendTrigger(triggerVal):
+        MEG_ACQ.setData(int(triggerVal))
+        core.wait(0.01)
+        parallel.setData(0)
+
 ctrl_block      = 1
 int_block       = 2
-button_out      = 4
-
-def sendTrigger(triggerVal):
-    MEG_ACQ.setData(int(triggerVal))
-    core.wait(0.01)
-    parallel.setData(0)
 
 def printTrialType(triggerVal):
     print(triggerVal)

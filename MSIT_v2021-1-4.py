@@ -68,31 +68,33 @@ all_int_stim=['221','212','331','313','112','211','332','233','131','311',\
 VPIXX       = 0 # set to 1 if in MEG
 
 # BUTTON BOX Part 1: set up parallel ports# 
-BBOX_1_OR_2 = parallel.ParallelPort(0x3048)  # yellow and green buttons
-BBOX_3 = parallel.ParallelPort(0x3048+2)    # red button is mapped to pin 1, 
-                                             # so we need to read the control register
+if VPIXX:
+    BBOX_1_OR_2 = parallel.ParallelPort(0x3048)  # yellow and green buttons
+    BBOX_3 = parallel.ParallelPort(0x3048+2)    # red button is mapped to pin 1, 
+                                                 # so we need to read the control register
 
-# BUTTON BOX Part 2: return button press
-def readButtons():
-    if BBOX_1_OR_2.readPin(2):
-        return('1')
-    elif BBOX_1_OR_2.readPin(3):
-        return('2')
-    elif BBOX_3.readPin(2):
-        return('3')
-    else:
-        return('none')
+    # BUTTON BOX Part 2: return button press
+    def readButtons():
+        if BBOX_1_OR_2.readPin(2):
+            return('1')
+        elif BBOX_1_OR_2.readPin(3):
+            return('2')
+        elif BBOX_3.readPin(2):
+            return('3')
+        else:
+            return('none')
 
-# SENDING OUT info about trials
-MEG_ACQ         = parallel.ParallelPort(address=0x4048)
+    # SENDING OUT info about trials
+    MEG_ACQ         = parallel.ParallelPort(address=0x4048)
+    button_out      = 4
+
+    def sendTrigger(triggerVal):
+        MEG_ACQ.setData(int(triggerVal))
+        core.wait(0.01)
+        parallel.setData(0)
+
 ctrl_block      = 1
 int_block       = 2
-button_out      = 4
-
-def sendTrigger(triggerVal):
-    MEG_ACQ.setData(int(triggerVal))
-    core.wait(0.01)
-    parallel.setData(0)
 
 def printTrialType(triggerVal):
     print(triggerVal)
@@ -126,10 +128,10 @@ expInfo['expName'] = expName
 
 if expInfo['Configuration'] == 'Practice':
     logging.log(level=logging.EXP, msg="Configuration: Practice")
-    print "Configuration: Practice"
+    print("Configuration: Practice")
 elif expInfo['Configuration'] == 'Task':
     logging.log(level=logging.EXP, msg="Configuration: Task")
-    print "Configuration: Task"
+    print("Configuration: Task")
 
 
 # if practice, reconfigure some aspects
@@ -209,56 +211,56 @@ else:
 instructClock = core.Clock()
 instruct_text1 = visual.TextStim(win=win, ori=0, name='instruct_text1',
     text=task_instructions1,
-    font='Arial',alignHoriz='center', alignVert='center',
+    font='Arial',alignText='center',
     pos=[0, 0.5], height=0.08, wrapWidth=1.5,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 instruct_text2 = visual.TextStim(win=win, ori=0, name='instruct_text2',
     text=task_instructions2,
-    font='Arial',alignHoriz='center', alignVert='center',
+    font='Arial',alignText='center',
     pos=[0, 0.42], height=0.08, wrapWidth=1.5,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 instruct_text3 = visual.TextStim(win=win, ori=0, name='instruct_text3',
     text=task_instructions3,
-    font='Arial',alignHoriz='center', alignVert='center',
+    font='Arial',alignText='center',
     pos=[0, 0.26], height=0.08, wrapWidth=1.5,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 instruct_text4 = visual.TextStim(win=win, ori=0, name='instruct_text4',
     text=task_instructions4,
-    font='Arial',alignHoriz='center', alignVert='center',
+    font='Arial',alignText='center',
     pos=[0, 0.08], height=0.08, wrapWidth=1.5,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 instruct_text5 = visual.TextStim(win=win, ori=0, name='instruct_text5',
     text=task_instructions5,
-    font='Arial',alignHoriz='center', alignVert='center',
+    font='Arial',alignText='center',
     pos=[0, 0.0], height=0.08, wrapWidth=1.5,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 instruct_text6 = visual.TextStim(win=win, ori=0, name='instruct_text6',
     text=task_instructions6,
-    font='Arial',alignHoriz='center', alignVert='center',
+    font='Arial',alignText='center',
     pos=[0, -0.16], height=0.08, wrapWidth=1.5,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 instruct_text7 = visual.TextStim(win=win, ori=0, name='instruct_text7',
     text=task_instructions7,
-    font='Arial',alignHoriz='center', alignVert='center',
+    font='Arial',alignText='center',
     pos=[0, -.24], height=0.08, wrapWidth=1.5,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 instruct_text8 = visual.TextStim(win=win, ori=0, name='instruct_text8',
     text=task_instructions8,
-    font='Arial',alignHoriz='center', alignVert='center',
+    font='Arial',alignText='center',
     pos=[0, -0.40], height=0.08, wrapWidth=1.5,
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
@@ -282,7 +284,7 @@ firstClock = core.Clock()
 first_text = visual.TextStim(win=win,
     ori=0, name='first_text',
     text='nonsense',    font='Arial',
-    pos=[0, 0], units='pix', height=100, # this is max text height for v1.85.2
+    pos=[0, 0], units='pix', height=300, 
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
@@ -290,7 +292,7 @@ first_text = visual.TextStim(win=win,
 secondClock = core.Clock()
 second_text = visual.TextStim(win=win, ori=0, name='second_text',
     text='nonsense',    font='Arial',
-    pos=[0, 0], units='pix', height=100, # this is max text height for v1.85.2
+    pos=[0, 0], units='pix', height=300, 
     color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
@@ -298,8 +300,8 @@ second_text = visual.TextStim(win=win, ori=0, name='second_text',
 if expInfo['Configuration'] == 'Practice':
     response_text = visual.TextStim(win=win, ori=0, name='response_text',
         text='nonsense',    font='Arial',
-        alignHoriz='center', alignVert='top',
-        pos=[0, 0.3], height=0.08, wrapWidth=None,
+        alignText='center', anchorVert='top',
+        pos=[0, 0.6], height=0.16, wrapWidth=None,
         color='white', colorSpace='rgb', opacity=1,
         depth=0.0)
 
@@ -726,18 +728,18 @@ for thisExp_loop in exp_loop:
             expInfo['Starting Block'],block_num,\
             first_block_err,\
             first_block_rt / float(NSTIM_BLOCK - first_block_err)))
-        print "%s block #%d: errors %d, rt %3.2f sec"%(\
+        print("%s block #%d: errors %d, rt %3.2f sec"%(\
             expInfo['Starting Block'],block_num,\
             first_block_err,\
-            first_block_rt / float(NSTIM_BLOCK - first_block_err))
+            first_block_rt / float(NSTIM_BLOCK - first_block_err)))
     else:
         logging.log(level=logging.EXP,\
             msg="%s block #%d: errors %d, rt nan"%(\
             expInfo['Starting Block'],block_num,\
             first_block_err))
-        print "%s block #%d: errors %d, rt nan"%(\
+        print("%s block #%d: errors %d, rt nan"%(\
             expInfo['Starting Block'],block_num,\
-            first_block_err)
+            first_block_err))
 
     # set up handler to look after randomisation of conditions etc
     second_loop = data.TrialHandler(nReps=NSTIM_BLOCK, method='random',
@@ -949,14 +951,14 @@ for thisExp_loop in exp_loop:
         logging.log(level=logging.EXP,\
             msg="%s block #%d: errors %d, rt %3.2f sec"%(t_str,block_num,\
             second_block_err, second_block_rt / float(NSTIM_BLOCK-second_block_err)))
-        print "%s block #%d: errors %d, rt %3.2f sec"%(t_str,block_num,\
-            second_block_err, second_block_rt / float(NSTIM_BLOCK-second_block_err))
+        print("%s block #%d: errors %d, rt %3.2f sec"%(t_str,block_num,\
+            second_block_err, second_block_rt / float(NSTIM_BLOCK-second_block_err)))
     else:
         logging.log(level=logging.EXP,\
             msg="%s block #%d: errors %d, rt nan"%(t_str,block_num,\
             second_block_err ))
-        print "%s block #%d: errors %d, rt nan"%(t_str,block_num,\
-            second_block_err )
+        print("%s block #%d: errors %d, rt nan"%(t_str,block_num,\
+            second_block_err ))
 
     thisExp.nextEntry()
 
@@ -965,24 +967,24 @@ if expInfo['Starting Block'] == 'Interference':
     logging.log(level=logging.EXP,\
         msg="Control total: errors %d, rt %3.2f sec"%( \
         second_total_err, second_total_rt / float(second_total_nstim)))
-    print "Control total: errors %d, rt %3.2f sec"%( \
-        second_total_err, second_total_rt / float(second_total_nstim))
+    print("Control total: errors %d, rt %3.2f sec"%( \
+        second_total_err, second_total_rt / float(second_total_nstim)))
     logging.log(level=logging.EXP,\
         msg="Interference total: errors %d, rt %3.2f sec"%( \
         first_total_err, first_total_rt / float(first_total_nstim)))
-    print "Interference total: errors %d, rt %3.2f sec"%( \
-        first_total_err, first_total_rt / float(first_total_nstim))
+    print("Interference total: errors %d, rt %3.2f sec"%( \
+        first_total_err, first_total_rt / float(first_total_nstim)))
 else:
     logging.log(level=logging.EXP,\
         msg="Control total: errors %d, rt %3.2f sec"%( \
         first_total_err, first_total_rt / float(first_total_nstim)))
-    print "Control total: errors %d, rt %3.2f sec"%( \
-        first_total_err, first_total_rt / float(first_total_nstim))
+    print("Control total: errors %d, rt %3.2f sec"%( \
+        first_total_err, first_total_rt / float(first_total_nstim)))
     logging.log(level=logging.EXP,\
         msg="Interference total: errors %d, rt %3.2f sec"%( \
         second_total_err, second_total_rt / float(second_total_nstim)))
-    print "Interference total: errors %d, rt %3.2f sec"%( \
-        second_total_err, second_total_rt / float(second_total_nstim))
+    print("Interference total: errors %d, rt %3.2f sec"%( \
+        second_total_err, second_total_rt / float(second_total_nstim)))
 
 
 #------Prepare to start Routine "fixation"-------
