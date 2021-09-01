@@ -66,8 +66,34 @@ all_int_stim=['221','212','331','313','112','211','332','233','131','311',\
 ################################
 
 VPIXX       = 0 # set to 1 if in MEG
-BUTTON_BOX  = parallel.ParallelPort(address=0x3048)
-MEG_ACQ     = parallel.ParallelPort(address=0x4048)
+
+# BUTTON BOX Part 1: set up parallel ports# 
+BBOX_1_OR_2 = parallel.ParallelPort(0x3048)  # yellow and green buttons
+BBOX_3 = parallel.ParallelPort(0x3048+2)    # red button is mapped to pin 1, 
+                                             # so we need to read the control register
+
+# BUTTON BOX Part 2: return button press
+def readButtons():
+    if BBOX_1_OR_2.readPin(2):
+        return('1')
+    elif BBOX_1_OR_2.readPin(3):
+        return('2')
+    elif BBOX_3.readPin(2):
+        return('3')
+    else:
+        return('none')
+
+# SENDING OUT info about trials
+MEG_ACQ         = parallel.ParallelPort(address=0x4048)
+int_block       = 1
+ctrl_block      = 2
+correct_resp    = 4
+incorrect_resp  = 8
+
+def sendTrigger(triggerVal):
+    MEG_ACQ.setData(int(triggerVal))
+    core.wait(0.01)
+    parallel.setData(0)
 
 # NTS: check the mapping from nback task
 
@@ -585,67 +611,49 @@ for thisExp_loop in exp_loop:
                 first_resp.tStart = t  # underestimates by a little under one frame
                 first_resp.frameNStart = frameN  # exact frame index
                 first_resp.status = STARTED
+                first_resp.corr = []
                 # keyboard checking == just starting
                 first_resp.clock.reset()  # now t=0
                 event.clearEvents()
+                theseKeys = [] # initialize button box response queue
+                response = 'none'
             elif first_resp.status == STARTED and t >= (0.0 + STIM_ISI_SECONDS):
                 first_resp.status = STOPPED
 
-            if first_resp.status == STARTED:
-#                # check for a LUMINA_TRIGGER from the Lumina box
-#                if LUMINA == 1:
-#                    theseKeys=[]
-#                    lumina_dev.poll_for_response()
-#                    while lumina_dev.response_queue_size() > 0:
-#                        response = lumina_dev.get_next_response()
-#                        if response["pressed"]:
-#                            logging.log(level=logging.EXP,\
-#                                msg="Lumina received: %s, %d"%(response["key"],\
-#                                response["key"]))
-#                            print "Lumina received: %s, %d"%(response["key"],\
-#                                response["key"])
-#                            if response["key"] in [0,1,2]:
-#                                theseKeys.append(str(response["key"]+1))
-                if VPIXX == 1:
-                    # need some way to register all button presses and take the last one
-                    # if the participant decided to correct their option
-                   
-                    # theseKeys = []
-                    # BBOX_1 = BUTTON_BOX.readPin(???)
-                    # BBOX_2 = BUTTON_BOX.readPin(???)
-                    # BBOX_3 = BUTTON_BOX.readPin(???)
-                    # LOG RESPONSE? 
-                    if BBOX_1:
-                        theseKeys.append('1')
-                    elif BBOX_2:
-                        theseKeys.append('2')
-                    elif BBOX_3:
-                        theseKeys.append('3')
-                else:
-                    theseKeys = event.getKeys(keyList=['h', 'j', 'k', 'left',\
-                        'down','right'])
-
-                if len(theseKeys) > 0:  # at least one key was pressed
-                    first_resp.keys = theseKeys[-1]  # just the last key pressed
-                    first_resp.rt = first_resp.clock.getTime()
-                    if first_resp.keys == 'left' or first_resp.keys == 'h':
-                        first_resp.keys = '1'
-                    elif first_resp.keys == 'down' or first_resp.keys == 'j':
-                        first_resp.keys = '2'
-                    elif first_resp.keys == 'right' or first_resp.keys == 'k':
-                        first_resp.keys = '3'
-
-                    # was this 'correct'?
-                    if (first_resp.keys == str(first_correct_str)):
-                        first_resp.corr = 1
-                        if expInfo['Configuration'] == 'Practice':
-                            response_text.setText("%s is correct"%(first_resp.keys))
-                            response_text.setColor('white')
+            if first_resp.status == STARTED: # if the trial has begun
+                if first_resp.corr == []: # and no first response has been logged
+                    if VPIXX == 1: # task condition
+                        response = readButtons() # read the button box
+                        if response != 'none':   # if a button was pressed
+                            logging.log(level=logging.EXP,\
+                                        msg="Button box received: %s"%(response))
+                            theseKeys.append(response) # record the response
                     else:
-                        first_resp.corr=0
-                        if expInfo['Configuration'] == 'Practice':
-                            response_text.setText("%s is incorrect"%(first_resp.keys))
-                            response_text.setColor('red')
+                        theseKeys = event.getKeys(keyList=['h', 'j', 'k', 'left',\
+                            'down','right'])
+                        
+                    # print(theseKeys) # check for response, uncomment when testing @ MEG
+                    if len(theseKeys) > 0:  # at least one key was pressed
+                        first_resp.keys = theseKeys[0]  # just the first key
+                        first_resp.rt = first_resp.clock.getTime()
+                        if first_resp.keys == 'left' or first_resp.keys == 'h':
+                            first_resp.keys = '1'
+                        elif first_resp.keys == 'down' or first_resp.keys == 'j':
+                            first_resp.keys = '2'
+                        elif first_resp.keys == 'right' or first_resp.keys == 'k':
+                            first_resp.keys = '3'
+
+                        # was this 'correct'?
+                        if (first_resp.keys == str(first_correct_str)):
+                            first_resp.corr = 1
+                            if expInfo['Configuration'] == 'Practice':
+                                response_text.setText("%s is correct"%(first_resp.keys))
+                                response_text.setColor('white')
+                        else:
+                            first_resp.corr=0
+                            if expInfo['Configuration'] == 'Practice':
+                                response_text.setText("%s is incorrect"%(first_resp.keys))
+                                response_text.setColor('red')
 
             # check if all components have finished
             if not continueRoutine:  # a component has requested a forced-end of Routine
@@ -814,41 +822,49 @@ for thisExp_loop in exp_loop:
                 second_response.tStart = t  # underestimates by a little under one frame
                 second_response.frameNStart = frameN  # exact frame index
                 second_response.status = STARTED
+                second_response.corr = []
                 # keyboard checking == just starting
                 second_response.clock.reset()  # now t=0
                 event.clearEvents()
+                theseKeys = []
+                response = 'none'
             elif second_response.status == STARTED and t >= (0 + STIM_ISI_SECONDS):
                 second_response.status = STOPPED
 
             if second_response.status == STARTED:
-                if VPIXX == 1:
-                    theseKeys=[]
-################### PASTE HERE WHAT YOU FIGURE OUT FROM first_response SECTION RE: BUTTON PRESS ####################################################
-                    # LOG BUTTON BOX RESPONSE
-                else:
-                    theseKeys = event.getKeys(keyList=['h', 'j', 'k','left',\
-                        'down','right'])
-
-                if len(theseKeys) > 0:  # at least one key was pressed
-                    second_response.keys = theseKeys[-1]  # just the last key pressed
-                    second_response.rt = second_response.clock.getTime()
-                    if second_response.keys == 'left' or second_response.keys == 'h':
-                        second_response.keys = '1'
-                    elif second_response.keys == 'down' or second_response.keys == 'j':
-                        second_response.keys = '2'
-                    elif second_response.keys == 'right' or second_response.keys == 'k':
-                        second_response.keys = '3'
-                    # was this 'correct'?
-                    if (second_response.keys == str(second_correct_str)):
-                        if expInfo['Configuration'] == 'Practice':
-                            response_text.setText("%s is correct"%(second_response.keys))
-                            response_text.setColor('white')
-                        second_response.corr = 1
+                if second_response.corr == []:
+                    if VPIXX == 1:
+                        response = readButtons()
+                        if response != 'none':
+                            logging.log(level=logging.EXP,\
+                                        msg="Button box received: %s"%(response))
+                            theseKeys.append(response)
                     else:
-                        if expInfo['Configuration'] == 'Practice':
-                            response_text.setText("%s is incorrect"%(second_response.keys))
-                            response_text.setColor('red')
-                        second_response.corr=0
+                        theseKeys = event.getKeys(keyList=['h', 'j', 'k','left',\
+                            'down','right'])
+
+                    print(theseKeys)
+                    if len(theseKeys) > 0:  # at least one key was pressed
+                        second_response.keys = theseKeys[0]  # just the last key pressed
+                        second_response.rt = second_response.clock.getTime()
+                        if second_response.keys == 'left' or second_response.keys == 'h':
+                            second_response.keys = '1'
+                        elif second_response.keys == 'down' or second_response.keys == 'j':
+                            second_response.keys = '2'
+                        elif second_response.keys == 'right' or second_response.keys == 'k':
+                            second_response.keys = '3'
+
+                        # was this 'correct'?
+                        if (second_response.keys == str(second_correct_str)):
+                            if expInfo['Configuration'] == 'Practice':
+                                response_text.setText("%s is correct"%(second_response.keys))
+                                response_text.setColor('white')
+                            second_response.corr = 1
+                        else:
+                            if expInfo['Configuration'] == 'Practice':
+                                response_text.setText("%s is incorrect"%(second_response.keys))
+                                response_text.setColor('red')
+                            second_response.corr=0
 
 
             # check if all components have finished
