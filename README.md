@@ -15,8 +15,8 @@ Planned modifications by Julie Tseng to prep task for MEG acquisition. Changes i
     * 2021-08-11: Had to fix issue with triple numbers not showing up for this version of PsychoPy, otherwise works
 - [x] Change resolution to 1920x1080 as per the stim comp screen in the Clinical MEG, including the fixation stim
 - [x] Removal of LUMINA trigger and LUMINA button press settings
-- [ ] Set up parallel port I/O for registering button presses
-- [ ] Set up triggers to be sent to MEG acquisition system
+- [x] Set up parallel port I/O for registering button presses => done on 2021-09-01
+- [x] Set up triggers to be sent to MEG acquisition system => done on 2021-09-01
 - [ ] Liz to refine instruction text
 - [ ] Modifications to task structure as per Liz's plans
 
