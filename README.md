@@ -19,6 +19,10 @@ Planned modifications by Julie Tseng to prep task for MEG acquisition. Changes i
 - [x] Set up triggers to be sent to MEG acquisition system => done on 2021-09-01
 - [ ] Liz to refine instruction text
 - [ ] Modifications to task structure as per Liz's plans
+    * Insert training mode to experiment
+    * Insert fixation before and blank screen after each triplet presentation
+    * Insert light trigger flashing square and pixelmode pixel
+    * Control and interference trials should be interspersed
 
 ## Task Description
 
