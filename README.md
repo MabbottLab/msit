@@ -1,6 +1,6 @@
-[![DOI](https://zenodo.org/badge/9342/ccraddock/msit.svg)](https://zenodo.org/badge/latestdoi/9342/ccraddock/msit)
+# ARCHIVED: Multi-Source Interference Task
 
-# Multi-Source Interference Task
+Originally, I was modifying this code to suit our task configuration but realized it would be easier if I built mine from scratch. Particularly, we're not blocking the control and interference trials; they'll be interspersed within each other. After a few days of attempting to retrofit the existing routine/trial structure, I decided it would be easier to just start from scratch. Therefore, I'm archiving this as of 2021-10-01. 
 
 Originally created by: R. Cameron Craddock<sup>1,2,†</sup>, see original repository [here](https://github.com/ccraddock/msit).
 
